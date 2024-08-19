@@ -1,0 +1,37 @@
+import pandas as pd
+from scipy.stats import chi2_contingency
+
+# Load the A/B test data
+data = pd.read_csv('ab_test_data.csv')
+
+# Summary statistics
+summary = data.groupby('Group')['Conversion'].agg(['mean', 'count'])
+print("Summary Statistics:")
+print(summary)
+
+# Conversion rate for each group
+conversion_rate_A = summary.loc['A', 'mean']
+conversion_rate_B = summary.loc['B', 'mean']
+print(f"Conversion Rate for Group A: {conversion_rate_A:.2f}")
+print(f"Conversion Rate for Group B: {conversion_rate_B:.2f}")
+
+# Create a contingency table
+contingency_table = pd.crosstab(data['Group'], data['Conversion'])
+print("Contingency Table:")
+print(contingency_table)
+
+# Perform the chi-squared test
+chi2, p, dof, expected = chi2_contingency(contingency_table)
+print(f"Chi-squared: {chi2:.2f}")
+print(f"P-value: {p:.4f}")
+
+# Interpretation
+alpha = 0.05  # Significance level
+if p < alpha:
+    print("Reject the null hypothesis: There is a significant difference between the two groups.")
+    if conversion_rate_B > conversion_rate_A:
+        print("Group B has a higher conversion rate. Consider adopting changes from Group B.")
+    else:
+        print("Group A has a higher conversion rate. Consider sticking with Group A or investigating Group B's changes.")
+else:
+    print("Fail to reject the null hypothesis: There is no significant difference between the two groups.")
